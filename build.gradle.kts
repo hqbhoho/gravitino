@@ -378,11 +378,15 @@ subprojects {
       // It will cause tests of Trino-connector hanging forever on macOS, to avoid this issue and
       // other vendor-related problems, Gravitino will use the specified AMAZON OpenJDK 17 to build
       // Trino-connector on macOS.
-      if (project.name == "trino-connector") {
+      if (project.name == "trino-common" || project.name == "v435" || project.name == "v478") {
         if (OperatingSystem.current().isMacOsX) {
           vendor.set(JvmVendorSpec.AMAZON)
         }
-        languageVersion.set(JavaLanguageVersion.of(17))
+        if (project.name == "v478") {
+          languageVersion.set(JavaLanguageVersion.of(24))
+        } else {
+          languageVersion.set(JavaLanguageVersion.of(17))
+        }
       } else if (compatibleWithJDK8(project)) {
         languageVersion.set(JavaLanguageVersion.of(17))
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -417,6 +421,10 @@ subprojects {
   }
 
   tasks.withType<JavaCompile>().configureEach {
+    if (project.name == "v478") {
+      options.errorprone.isEnabled.set(false)
+      return@configureEach
+    }
     options.errorprone.isEnabled.set(true)
     options.errorprone.disableWarningsInGeneratedCode.set(true)
     options.errorprone.disable(
@@ -852,18 +860,22 @@ tasks {
   }
 
   val compileTrinoConnector by registering {
-    dependsOn("trino-connector:trino-connector:copyLibs")
+    dependsOn("trino-connector:v435:copyLibs", "trino-connector:v478:copyLibs")
     group = "gravitino distribution"
-    outputs.dir(projectDir.dir("distribution/${rootProject.name}-trino-connector"))
     doLast {
-      copy {
-        from(projectDir.dir("licenses")) { into("${rootProject.name}-trino-connector/licenses") }
-        from(projectDir.file("LICENSE.trino")) { into("${rootProject.name}-trino-connector") }
-        from(projectDir.file("NOTICE.trino")) { into("${rootProject.name}-trino-connector") }
-        from(projectDir.file("README.md")) { into("${rootProject.name}-trino-connector") }
-        into(outputDir)
-        rename { fileName ->
-          fileName.replace(".trino", "")
+      val trino435Version = libs.versions.trino.get()
+      val trino478Version = libs.versions.trino478.get()
+      listOf(trino435Version, trino478Version).forEach { trinoVersion ->
+        val targetDir = "${rootProject.name}-trino-connector-$trinoVersion"
+        copy {
+          from(projectDir.dir("licenses")) { into("$targetDir/licenses") }
+          from(projectDir.file("LICENSE.trino")) { into(targetDir) }
+          from(projectDir.file("NOTICE.trino")) { into(targetDir) }
+          from(projectDir.file("README.md")) { into(targetDir) }
+          into(outputDir)
+          rename { fileName ->
+            fileName.replace(".trino", "")
+          }
         }
       }
     }
@@ -880,15 +892,39 @@ tasks {
     destinationDirectory.set(projectDir.dir("distribution"))
   }
 
-  val assembleTrinoConnector by registering(Tar::class) {
+  val assembleTrinoConnector435 by registering(Tar::class) {
     dependsOn("compileTrinoConnector")
     group = "gravitino distribution"
     finalizedBy("checksumTrinoConnector")
-    into("${rootProject.name}-trino-connector-$version")
-    from(compileTrinoConnector.map { it.outputs.files.single() })
+    val trinoVersion = libs.versions.trino.get()
+    val archiveName = "${rootProject.name}-trino-connector-$trinoVersion-$version"
+
+    into(archiveName)
+    from(outputDir.dir("${rootProject.name}-trino-connector-$trinoVersion"))
+
     compression = Compression.GZIP
-    archiveFileName.set("${rootProject.name}-trino-connector-$version.tar.gz")
+    archiveFileName.set("$archiveName.tar.gz")
     destinationDirectory.set(projectDir.dir("distribution"))
+  }
+
+  val assembleTrinoConnector478 by registering(Tar::class) {
+    dependsOn("compileTrinoConnector")
+    group = "gravitino distribution"
+    finalizedBy("checksumTrinoConnector")
+    val trinoVersion = libs.versions.trino478.get()
+    val archiveName = "${rootProject.name}-trino-connector-$trinoVersion-$version"
+
+    into(archiveName)
+    from(outputDir.dir("${rootProject.name}-trino-connector-$trinoVersion"))
+
+    compression = Compression.GZIP
+    archiveFileName.set("$archiveName.tar.gz")
+    destinationDirectory.set(projectDir.dir("distribution"))
+  }
+
+  val assembleTrinoConnector by registering {
+    group = "gravitino distribution"
+    dependsOn(assembleTrinoConnector435, assembleTrinoConnector478)
   }
 
   val assembleLanceRESTServer by registering(Tar::class) {
@@ -964,16 +1000,14 @@ tasks {
   register("checksumTrinoConnector") {
     group = "gravitino distribution"
     dependsOn(assembleTrinoConnector)
-    val archiveFile = assembleTrinoConnector.flatMap { it.archiveFile }
-    val checksumFile = archiveFile.map { archive ->
-      archive.asFile.let { it.resolveSibling("${it.name}.sha256") }
-    }
-    inputs.file(archiveFile)
-    outputs.file(checksumFile)
     doLast {
-      checksumFile.get().writeText(
-        serviceOf<ChecksumService>().sha256(archiveFile.get().asFile).toString()
-      )
+      listOf(assembleTrinoConnector435, assembleTrinoConnector478).forEach { taskProvider ->
+        val archiveFile = taskProvider.get().archiveFile.get().asFile
+        val checksumFile = File(archiveFile.absolutePath + ".sha256")
+        checksumFile.writeText(
+          serviceOf<ChecksumService>().sha256(archiveFile).toString()
+        )
+      }
     }
   }
 
@@ -997,6 +1031,9 @@ tasks {
         it.name != "hadoop-common" &&
         it.name != "integration-test" &&
         it.name != "trino-connector" &&
+        it.name != "trino-common" &&
+        it.name != "v435" &&
+        it.name != "v478" &&
         it.parent?.name != "bundles" &&
         it.parent?.name != "maintenance" &&
         it.name != "mcp-server"
@@ -1028,6 +1065,9 @@ tasks {
         !it.name.startsWith("integration-test") &&
         !it.name.startsWith("spark") &&
         !it.name.startsWith("trino-connector") &&
+        it.name != "v435" &&
+        it.name != "v478" &&
+        it.name != "trino-common" &&
         it.name != "hive-metastore2-libs" &&
         it.name != "hive-metastore3-libs" &&
         it.name != "hive-metastore-common" &&

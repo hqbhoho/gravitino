@@ -68,6 +68,7 @@ spark35 = "3.5.1"
 kyuubi4spark = "1.10.2"
 kyuubi4authz = "1.10.2"
 trino = '435'
+trino478 = '478'
 scala-collection-compat = "2.7.0"
 scala-java-compat = "1.0.2"
 sqlite-jdbc = "3.42.0.0"
@@ -243,8 +244,11 @@ paimon-oss = { group = "org.apache.paimon", name = "paimon-oss", version.ref = "
 paimon-spark = { group = "org.apache.paimon", name = "paimon-spark", version.ref = "paimon" }
 
 trino-spi= { group = "io.trino", name = "trino-spi", version.ref = "trino" }
+trino478-spi = { group = "io.trino", name = "trino-spi", version.ref = "trino478" }
 trino-testing= { group = "io.trino", name = "trino-testing", version.ref = "trino" }
+trino478-testing = { group = "io.trino", name = "trino-testing", version.ref = "trino478" }
 trino-memory= { group = "io.trino", name = "trino-memory", version.ref = "trino" }
+trino478-memory = { group = "io.trino", name = "trino-memory", version.ref = "trino478" }
 trino-cli= { group = "io.trino", name = "trino-cli", version.ref = "trino" }
 trino-client= { group = "io.trino", name = "trino-client", version.ref = "trino" }
 sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite-jdbc" }
@@ -255,6 +259,7 @@ testcontainers-postgresql = { group = "org.testcontainers", name = "postgresql",
 testcontainers-junit-jupiter = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
 testcontainers-localstack = { group = "org.testcontainers", name = "localstack", version.ref = "testcontainers" }
 trino-jdbc = { group = "io.trino", name = "trino-jdbc", version.ref = "trino" }
+trino478-jdbc = { group = "io.trino", name = "trino-jdbc", version.ref = "trino478" }
 jwt-api = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jwt"}
 jwt-impl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jwt"}
 jwt-gson = { group = "io.jsonwebtoken", name = "jjwt-gson", version.ref = "jwt"}

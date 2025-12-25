@@ -63,7 +63,9 @@ include("iceberg:iceberg-rest-server")
 include("lance:lance-common")
 include("lance:lance-rest-server")
 include("authorizations:authorization-ranger", "authorizations:authorization-common", "authorizations:authorization-chain")
-include("trino-connector:trino-connector", "trino-connector:integration-test")
+include("trino-connector:trino-common", "trino-connector:v435", "trino-connector:v478", "trino-connector:integration-test")
+project(":trino-connector:v435").projectDir = file("trino-connector/v435")
+project(":trino-connector:v478").projectDir = file("trino-connector/v478")
 include("spark-connector:spark-common")
 if (scalaVersion == "2.12") {
   // flink only support scala 2.12
