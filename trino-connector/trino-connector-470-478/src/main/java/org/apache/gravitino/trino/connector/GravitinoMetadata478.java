@@ -19,6 +19,7 @@
 package org.apache.gravitino.trino.connector;
 
 import io.airlift.slice.Slice;
+import io.trino.spi.connector.ColumnHandle;
 import io.trino.spi.connector.ConnectorInsertTableHandle;
 import io.trino.spi.connector.ConnectorMergeTableHandle;
 import io.trino.spi.connector.ConnectorOutputMetadata;
@@ -29,14 +30,15 @@ import io.trino.spi.connector.SchemaTableName;
 import io.trino.spi.statistics.ComputedStatistics;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadata;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadataAdapter;
 
-public class GravitinoMetadata440 extends GravitinoMetadata {
+public class GravitinoMetadata478 extends GravitinoMetadata {
 
-  public GravitinoMetadata440(
+  public GravitinoMetadata478(
       CatalogConnectorMetadata catalogConnectorMetadata,
       CatalogConnectorMetadataAdapter metadataAdapter,
       io.trino.spi.connector.ConnectorMetadata internalMetadata) {
@@ -58,25 +60,43 @@ public class GravitinoMetadata440 extends GravitinoMetadata {
         computedStatistics);
   }
 
-    @Override
-    public ConnectorMergeTableHandle beginMerge(
-            ConnectorSession session, ConnectorTableHandle tableHandle, RetryMode retryMode) {
-        ConnectorMergeTableHandle connectorMergeTableHandle =
-                internalMetadata.beginMerge(session, GravitinoHandle.unWrap(tableHandle), retryMode);
-        SchemaTableName tableName = getTableName(tableHandle);
+  @Override
+  public ConnectorMergeTableHandle beginMerge(
+      ConnectorSession session,
+      ConnectorTableHandle tableHandle,
+      Map<Integer, Collection<ColumnHandle>> updateCaseColumns,
+      RetryMode retryMode) {
+    Map<Integer, Collection<ColumnHandle>> unWrapUpdateCaseColumns =
+        updateCaseColumns.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey(),
+                    entry ->
+                        entry.getValue().stream()
+                            .map(columnHandle -> GravitinoHandle.unWrap(columnHandle))
+                            .collect(Collectors.toUnmodifiableList())));
 
-        return new GravitinoMergeTableHandle(
-                tableName.getSchemaName(), tableName.getTableName(), connectorMergeTableHandle);
-    }
+    ConnectorMergeTableHandle connectorMergeTableHandle =
+        internalMetadata.beginMerge(
+            session, GravitinoHandle.unWrap(tableHandle), unWrapUpdateCaseColumns, retryMode);
+    SchemaTableName tableName = getTableName(tableHandle);
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public void finishMerge(
-            ConnectorSession session,
-            ConnectorMergeTableHandle mergeTableHandle,
-            Collection<Slice> fragments,
-            Collection<ComputedStatistics> computedStatistics) {
-        internalMetadata.finishMerge(
-                session, GravitinoHandle.unWrap(mergeTableHandle), fragments, computedStatistics);
-    }
+    return new GravitinoMergeTableHandle(
+        tableName.getSchemaName(), tableName.getTableName(), connectorMergeTableHandle);
+  }
+
+  @Override
+  public void finishMerge(
+      ConnectorSession session,
+      ConnectorMergeTableHandle mergeTableHandle,
+      List<ConnectorTableHandle> sourceTableHandles,
+      Collection<Slice> fragments,
+      Collection<ComputedStatistics> computedStatistics) {
+    internalMetadata.finishMerge(
+        session,
+        GravitinoHandle.unWrap(mergeTableHandle),
+        sourceTableHandles.stream().map(GravitinoHandle::unWrap).collect(Collectors.toList()),
+        fragments,
+        computedStatistics);
+  }
 }

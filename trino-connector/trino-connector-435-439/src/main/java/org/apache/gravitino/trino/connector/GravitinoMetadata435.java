@@ -20,8 +20,12 @@ package org.apache.gravitino.trino.connector;
 
 import io.airlift.slice.Slice;
 import io.trino.spi.connector.ConnectorInsertTableHandle;
+import io.trino.spi.connector.ConnectorMergeTableHandle;
 import io.trino.spi.connector.ConnectorOutputMetadata;
 import io.trino.spi.connector.ConnectorSession;
+import io.trino.spi.connector.ConnectorTableHandle;
+import io.trino.spi.connector.RetryMode;
+import io.trino.spi.connector.SchemaTableName;
 import io.trino.spi.statistics.ComputedStatistics;
 import java.util.Collection;
 import java.util.Optional;
@@ -46,4 +50,26 @@ public class GravitinoMetadata435 extends GravitinoMetadata {
     return internalMetadata.finishInsert(
         session, GravitinoHandle.unWrap(insertHandle), fragments, computedStatistics);
   }
+
+    @Override
+    public ConnectorMergeTableHandle beginMerge(
+            ConnectorSession session, ConnectorTableHandle tableHandle, RetryMode retryMode) {
+        ConnectorMergeTableHandle connectorMergeTableHandle =
+                internalMetadata.beginMerge(session, GravitinoHandle.unWrap(tableHandle), retryMode);
+        SchemaTableName tableName = getTableName(tableHandle);
+
+        return new GravitinoMergeTableHandle(
+                tableName.getSchemaName(), tableName.getTableName(), connectorMergeTableHandle);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void finishMerge(
+            ConnectorSession session,
+            ConnectorMergeTableHandle mergeTableHandle,
+            Collection<Slice> fragments,
+            Collection<ComputedStatistics> computedStatistics) {
+        internalMetadata.finishMerge(
+                session, GravitinoHandle.unWrap(mergeTableHandle), fragments, computedStatistics);
+    }
 }

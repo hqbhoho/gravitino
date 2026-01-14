@@ -18,16 +18,15 @@
  */
 package org.apache.gravitino.trino.connector;
 
-import io.trino.spi.connector.Connector;
 import io.trino.spi.connector.ConnectorMetadata;
 import io.trino.spi.connector.ConnectorNodePartitioningProvider;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorContext;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadata;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadataAdapter;
 
-public class GravitinoConnector440 extends GravitinoConnector {
+public class GravitinoConnector478 extends GravitinoConnector {
 
-  public GravitinoConnector440(CatalogConnectorContext connectorContext) {
+  public GravitinoConnector478(CatalogConnectorContext connectorContext) {
     super(connectorContext);
   }
 
@@ -36,11 +35,12 @@ public class GravitinoConnector440 extends GravitinoConnector {
       CatalogConnectorMetadata catalogConnectorMetadata,
       CatalogConnectorMetadataAdapter metadataAdapter,
       ConnectorMetadata internalMetadata) {
-    return new GravitinoMetadata440(catalogConnectorMetadata, metadataAdapter, internalMetadata);
+    return new GravitinoMetadata478(catalogConnectorMetadata, metadataAdapter, internalMetadata);
   }
 
-    @Override
-    public ConnectorNodePartitioningProvider createNodePartitioningProvider(ConnectorNodePartitioningProvider nodePartitioningProvider) {
-        return new GravitinoNodePartitioningProvider440(nodePartitioningProvider);
-    }
+  @Override
+  public ConnectorNodePartitioningProvider createNodePartitioningProvider(
+      ConnectorNodePartitioningProvider nodePartitioningProvider) {
+    return new GravitinoNodePartitioningProvider478(nodePartitioningProvider);
+  }
 }

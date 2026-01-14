@@ -104,7 +104,11 @@ public class GravitinoSystemConnector implements Connector {
     return new DatasourceProvider();
   }
 
-  /** The transaction handle for Gravitino system connector. */
+  public void shutdown() {
+   // do onthing
+  }
+
+    /** The transaction handle for Gravitino system connector. */
   public enum TransactionHandle implements ConnectorTransactionHandle {
     /** The singleton instance of the transaction handle. */
     INSTANCE
@@ -187,8 +191,6 @@ public class GravitinoSystemConnector implements Connector {
       return Collections.emptyList();
     }
 
-    @SuppressWarnings("removal")
-    @Override
     public Object getInfo() {
       return this;
     }
@@ -224,7 +226,6 @@ public class GravitinoSystemConnector implements Connector {
       return isFinished;
     }
 
-    @Override
     public Page getNextPage() {
       if (isFinished) {
         return null;

@@ -18,12 +18,14 @@
  */
 package org.apache.gravitino.trino.connector;
 
+import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
 import static org.apache.gravitino.trino.connector.GravitinoConnectorFactory.DEFAULT_CONNECTOR_NAME;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.trino.spi.HostAddress;
 import io.trino.spi.SplitWeight;
+import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ConnectorSplit;
 import java.util.List;
 
@@ -75,10 +77,8 @@ public class GravitinoSplit implements ConnectorSplit, GravitinoHandle<Connector
     return handleWrapper.getHandle().getAddresses();
   }
 
-  @SuppressWarnings("removal")
-  @Override
   public Object getInfo() {
-    return handleWrapper.getHandle().getInfo();
+      throw new TrinoException(NOT_SUPPORTED, "GravitinoSplit not implement getInfo");
   }
 
   @Override

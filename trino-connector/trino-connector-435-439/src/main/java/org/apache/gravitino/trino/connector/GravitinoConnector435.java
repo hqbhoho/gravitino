@@ -18,7 +18,9 @@
  */
 package org.apache.gravitino.trino.connector;
 
+import io.trino.spi.connector.Connector;
 import io.trino.spi.connector.ConnectorMetadata;
+import io.trino.spi.connector.ConnectorNodePartitioningProvider;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorContext;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadata;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadataAdapter;
@@ -36,4 +38,9 @@ public class GravitinoConnector435 extends GravitinoConnector {
       ConnectorMetadata internalMetadata) {
     return new GravitinoMetadata435(catalogConnectorMetadata, metadataAdapter, internalMetadata);
   }
+
+    @Override
+    public ConnectorNodePartitioningProvider createNodePartitioningProvider(ConnectorNodePartitioningProvider nodePartitioningProvider) {
+        return new GravitinoNodePartitioningProvider435(nodePartitioningProvider);
+    }
 }

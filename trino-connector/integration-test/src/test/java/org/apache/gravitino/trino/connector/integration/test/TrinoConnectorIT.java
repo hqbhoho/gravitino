@@ -111,7 +111,7 @@ public class TrinoConnectorIT extends BaseIT {
 
     containerSuite.startTrinoContainer(
         trinoConfDir,
-        System.getenv("GRAVITINO_ROOT_DIR") + "/trino-connector/build/libs",
+        System.getenv("GRAVITINO_ROOT_DIR") + "/trino-connector-470-478/build/libs",
         getGravitinoServerPort(),
         metalakeName);
     Assertions.assertTrue(

@@ -34,6 +34,8 @@ java {
 }
 
 dependencies {
+  implementation(project(":trino-connector:trino-connector"))
+  testImplementation(project(":trino-connector:trino-connector"))
   implementation(project(":catalogs:catalog-common"))
   implementation(project(":clients:client-java-runtime", configuration = "shadow"))
   implementation(libs.airlift.json)

@@ -18,18 +18,20 @@
  */
 package org.apache.gravitino.trino.connector;
 
+import static com.google.common.base.Verify.verify;
+import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
 import static org.apache.gravitino.trino.connector.GravitinoErrorCode.GRAVITINO_COLUMN_NOT_EXISTS;
 import static org.apache.gravitino.trino.connector.GravitinoErrorCode.GRAVITINO_TABLE_NOT_EXISTS;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import io.airlift.slice.Slice;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.AggregateFunction;
 import io.trino.spi.connector.AggregationApplicationResult;
 import io.trino.spi.connector.Assignment;
 import io.trino.spi.connector.ColumnHandle;
 import io.trino.spi.connector.ColumnMetadata;
+import io.trino.spi.connector.ColumnPosition;
 import io.trino.spi.connector.ConnectorInsertTableHandle;
 import io.trino.spi.connector.ConnectorMergeTableHandle;
 import io.trino.spi.connector.ConnectorMetadata;
@@ -282,14 +284,28 @@ public class GravitinoMetadata implements ConnectorMetadata {
     catalogConnectorMetadata.setTableProperties(getTableName(tableHandle), allProps);
   }
 
-  @Override
+
   public void addColumn(
       ConnectorSession session, ConnectorTableHandle tableHandle, ColumnMetadata column) {
     GravitinoColumn gravitinoColumn = metadataAdapter.createColumn(column);
     catalogConnectorMetadata.addColumn(getTableName(tableHandle), gravitinoColumn);
   }
 
-  @Override
+  public void addColumn(ConnectorSession session, ConnectorTableHandle tableHandle, ColumnMetadata column, ColumnPosition position) {
+      // TODO support column position
+      if (position instanceof ColumnPosition.First) {
+          throw new TrinoException(NOT_SUPPORTED, "This connector does not support adding columns with FIRST clause");
+      }
+      if (position instanceof ColumnPosition.After) {
+          throw new TrinoException(NOT_SUPPORTED, "This connector does not support adding columns with AFTER clause");
+      }
+     verify(position instanceof ColumnPosition.Last, "ColumnPosition must be instance of Last");
+
+     GravitinoColumn gravitinoColumn = metadataAdapter.createColumn(column);
+     catalogConnectorMetadata.addColumn(getTableName(tableHandle), gravitinoColumn);
+  }
+
+    @Override
   public void dropColumn(
       ConnectorSession session, ConnectorTableHandle tableHandle, ColumnHandle column) {
     String columnName = getColumnName(column);
@@ -606,28 +622,6 @@ public class GravitinoMetadata implements ConnectorMetadata {
   }
 
   @Override
-  public ConnectorMergeTableHandle beginMerge(
-      ConnectorSession session, ConnectorTableHandle tableHandle, RetryMode retryMode) {
-    ConnectorMergeTableHandle connectorMergeTableHandle =
-        internalMetadata.beginMerge(session, GravitinoHandle.unWrap(tableHandle), retryMode);
-    SchemaTableName tableName = getTableName(tableHandle);
-
-    return new GravitinoMergeTableHandle(
-        tableName.getSchemaName(), tableName.getTableName(), connectorMergeTableHandle);
-  }
-
-  @SuppressWarnings("deprecation")
-  @Override
-  public void finishMerge(
-      ConnectorSession session,
-      ConnectorMergeTableHandle mergeTableHandle,
-      Collection<Slice> fragments,
-      Collection<ComputedStatistics> computedStatistics) {
-    internalMetadata.finishMerge(
-        session, GravitinoHandle.unWrap(mergeTableHandle), fragments, computedStatistics);
-  }
-
-  @Override
   public Optional<ConnectorTableHandle> applyUpdate(
       ConnectorSession session,
       ConnectorTableHandle tableHandle,
@@ -692,7 +686,7 @@ public class GravitinoMetadata implements ConnectorMetadata {
                     : new ConnectorTableLayout(result.getPartitionColumns()));
   }
 
-  private SchemaTableName getTableName(ConnectorTableHandle tableHandle) {
+  protected SchemaTableName getTableName(ConnectorTableHandle tableHandle) {
     return ((GravitinoTableHandle) tableHandle).toSchemaTableName();
   }
 

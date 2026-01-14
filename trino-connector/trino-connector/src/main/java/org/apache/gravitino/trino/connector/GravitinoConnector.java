@@ -176,6 +176,14 @@ public class GravitinoConnector implements Connector {
     Connector internalConnector = catalogConnectorContext.getInternalConnector();
     ConnectorNodePartitioningProvider nodePartitioningProvider =
         internalConnector.getNodePartitioningProvider();
-    return new GravitinoNodePartitioningProvider(nodePartitioningProvider);
+    return createNodePartitioningProvider(nodePartitioningProvider);
   }
+
+  public ConnectorNodePartitioningProvider createNodePartitioningProvider(ConnectorNodePartitioningProvider nodePartitioningProvider){
+     return new GravitinoNodePartitioningProvider(nodePartitioningProvider);
+  }
+
+    public void shutdown() {
+        // do onthing
+    }
 }
