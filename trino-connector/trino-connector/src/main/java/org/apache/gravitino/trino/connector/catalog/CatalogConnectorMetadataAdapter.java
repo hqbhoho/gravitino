@@ -285,21 +285,21 @@ public class CatalogConnectorMetadataAdapter {
     return createColumn(column, -1);
   }
 
-    /**
-     * Creates a new Gravitino column from a Trino ColumnMetadata.
-     *
-     * @param column the Trino ColumnMetadata
-     * @param columnIndex the index of the column
-     * @return the new Gravitino column
-     */
-    public GravitinoColumn createColumn(ColumnMetadata column, int columnIndex) {
-        return new GravitinoColumn(
-                column.getName(),
-                dataTypeTransformer.getGravitinoType(column.getType()),
-                columnIndex,
-                column.getComment(),
-                column.isNullable(),
-                false,
-                column.getProperties());
-    }
+  /**
+   * Creates a new Gravitino column from a Trino ColumnMetadata.
+   *
+   * @param column the Trino ColumnMetadata
+   * @param columnIndex the index of the column
+   * @return the new Gravitino column
+   */
+  public GravitinoColumn createColumn(ColumnMetadata column, int columnIndex) {
+    return new GravitinoColumn(
+        column.getName(),
+        dataTypeTransformer.getGravitinoType(column.getType()),
+        columnIndex,
+        column.getComment(),
+        column.isNullable(),
+        false,
+        column.getProperties());
+  }
 }

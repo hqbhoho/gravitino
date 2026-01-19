@@ -78,7 +78,7 @@ public class GravitinoSplit implements ConnectorSplit, GravitinoHandle<Connector
   }
 
   public Object getInfo() {
-      throw new TrinoException(NOT_SUPPORTED, "GravitinoSplit not implement getInfo");
+    throw new TrinoException(NOT_SUPPORTED, "GravitinoSplit not implement getInfo");
   }
 
   @Override

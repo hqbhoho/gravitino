@@ -76,14 +76,14 @@ tasks.named("generateMetadataFileForMavenJavaPublication") {
   // No extra dependencies required now that runtime artifacts are copied directly during distribution tasks.
 }
 
-tasks {
-  register("copyLibs", Copy::class) {
-    dependsOn("build")
-    from("build/libs")
-    from({ configurations.runtimeClasspath.get().filter(File::isFile) })
-    into("$rootDir/distribution/${rootProject.name}-trino-connector")
-  }
-}
+// tasks {
+//  register("copyLibs", Copy::class) {
+//    dependsOn("build")
+//    from("build/libs")
+//    from({ configurations.runtimeClasspath.get().filter(File::isFile) })
+//    into("$rootDir/distribution/${rootProject.name}-trino-connector")
+//  }
+// }
 
 tasks.withType<JavaCompile>().configureEach {
   // Error Prone still crashes on the JDK 24 toolchain required by Trino 478.

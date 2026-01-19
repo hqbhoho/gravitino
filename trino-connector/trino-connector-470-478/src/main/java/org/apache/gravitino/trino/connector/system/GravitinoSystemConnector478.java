@@ -42,7 +42,7 @@ public class GravitinoSystemConnector478 extends GravitinoSystemConnector {
 
   @Override
   public ConnectorPageSourceProvider getPageSourceProvider() {
-    return new DatasourceProvider();
+    return new DatasourceProvider478();
   }
 
   public static class DatasourceProvider478 extends DatasourceProvider {

@@ -69,7 +69,7 @@ public final class BlockJsonSerde {
       SliceOutput output =
           new DynamicSliceOutput(
               toIntExact(
-                 // Encoding name max length is 14
+                  // Encoding name max length is 14
                   block.getSizeInBytes() + 16 + (2 * Integer.BYTES)));
 
       try {

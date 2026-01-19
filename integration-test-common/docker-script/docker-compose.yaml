@@ -82,6 +82,8 @@ services:
     image: trinodb/trino:478
     networks:
       - trino-net
+    ports:
+      - "8080:8080"
     container_name: trino-ci-trino
     environment:
       - HADOOP_USER_NAME=anonymous
@@ -128,7 +130,7 @@ services:
     entrypoint:  /bin/bash /tmp/trino/init.sh
     volumes:
       - ./init/trino:/tmp/trino
-      - ../../trino-connector/trino-connector/build/libs:/usr/lib/trino/plugin/gravitino
+      - ../../trino-connector/trino-connector-470-478/build/libs:/usr/lib/trino/plugin/gravitino
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

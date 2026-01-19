@@ -179,11 +179,12 @@ public class GravitinoConnector implements Connector {
     return createNodePartitioningProvider(nodePartitioningProvider);
   }
 
-  public ConnectorNodePartitioningProvider createNodePartitioningProvider(ConnectorNodePartitioningProvider nodePartitioningProvider){
-     return new GravitinoNodePartitioningProvider(nodePartitioningProvider);
+  public ConnectorNodePartitioningProvider createNodePartitioningProvider(
+      ConnectorNodePartitioningProvider nodePartitioningProvider) {
+    return new GravitinoNodePartitioningProvider(nodePartitioningProvider);
   }
 
-    public void shutdown() {
-        // do onthing
-    }
+  public void shutdown() {
+    // do onthing
+  }
 }

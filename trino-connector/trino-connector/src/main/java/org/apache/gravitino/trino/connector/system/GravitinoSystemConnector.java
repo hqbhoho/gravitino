@@ -105,10 +105,10 @@ public class GravitinoSystemConnector implements Connector {
   }
 
   public void shutdown() {
-   // do onthing
+    // do onthing
   }
 
-    /** The transaction handle for Gravitino system connector. */
+  /** The transaction handle for Gravitino system connector. */
   public enum TransactionHandle implements ConnectorTransactionHandle {
     /** The singleton instance of the transaction handle. */
     INSTANCE

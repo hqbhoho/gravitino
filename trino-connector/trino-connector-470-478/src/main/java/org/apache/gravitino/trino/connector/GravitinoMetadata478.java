@@ -18,8 +18,14 @@
  */
 package org.apache.gravitino.trino.connector;
 
+import static com.google.common.base.Verify.verify;
+import static io.trino.spi.StandardErrorCode.NOT_SUPPORTED;
+
 import io.airlift.slice.Slice;
+import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ColumnHandle;
+import io.trino.spi.connector.ColumnMetadata;
+import io.trino.spi.connector.ColumnPosition;
 import io.trino.spi.connector.ConnectorInsertTableHandle;
 import io.trino.spi.connector.ConnectorMergeTableHandle;
 import io.trino.spi.connector.ConnectorOutputMetadata;
@@ -35,6 +41,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadata;
 import org.apache.gravitino.trino.connector.catalog.CatalogConnectorMetadataAdapter;
+import org.apache.gravitino.trino.connector.metadata.GravitinoColumn;
 
 public class GravitinoMetadata478 extends GravitinoMetadata {
 
@@ -43,6 +50,27 @@ public class GravitinoMetadata478 extends GravitinoMetadata {
       CatalogConnectorMetadataAdapter metadataAdapter,
       io.trino.spi.connector.ConnectorMetadata internalMetadata) {
     super(catalogConnectorMetadata, metadataAdapter, internalMetadata);
+  }
+
+  @Override
+  public void addColumn(
+      ConnectorSession session,
+      ConnectorTableHandle tableHandle,
+      ColumnMetadata column,
+      ColumnPosition position) {
+    // TODO support column position
+    if (position instanceof ColumnPosition.First) {
+      throw new TrinoException(
+          NOT_SUPPORTED, "This connector does not support adding columns with FIRST clause");
+    }
+    if (position instanceof ColumnPosition.After) {
+      throw new TrinoException(
+          NOT_SUPPORTED, "This connector does not support adding columns with AFTER clause");
+    }
+    verify(position instanceof ColumnPosition.Last, "ColumnPosition must be instance of Last");
+
+    GravitinoColumn gravitinoColumn = metadataAdapter.createColumn(column);
+    catalogConnectorMetadata.addColumn(getTableName(tableHandle), gravitinoColumn);
   }
 
   @Override

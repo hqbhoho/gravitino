@@ -272,6 +272,7 @@ public class ContainerSuite implements Closeable {
       String trinoConnectorLibDir,
       int gravitinoServerPort,
       String metalakeName) {
+    System.out.println("==========" + trinoConnectorLibDir);
     if (trinoContainer == null) {
       synchronized (ContainerSuite.class) {
         if (trinoContainer == null) {
