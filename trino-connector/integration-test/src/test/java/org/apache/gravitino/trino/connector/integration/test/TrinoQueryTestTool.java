@@ -92,6 +92,11 @@ public class TrinoQueryTestTool {
               + "Use a distributed cluster for integration testing when necessary (value > 0), "
               + "otherwise fall back to a single-node setup with combined coordinator-worker roles.");
 
+      options.addOption(
+          "trino_version_list",
+          true,
+          "Specify the Trino version list to test, example: --trino_version_list=435,478");
+
       options.addOption("help", false, "Print this help message");
 
       CommandLineParser parser = new PosixParser();
@@ -113,7 +118,9 @@ public class TrinoQueryTestTool {
                 + "Run all the tpch testset's testers in the 'testsets/tpch' directory under 'mysql' "
                 + "catalog with manual start the test environment:\n"
                 + "TrinoTestTool --testset=tpch -- catalog=mysql --auto=none --gravitino_uri=http://10.3.21.12:8090 "
-                + "--trino_uri=http://10.3.21.12:8080 --mysql_url=jdbc:mysql:/10.3.21.12 \n";
+                + "--trino_uri=http://10.3.21.12:8080 --mysql_url=jdbc:mysql:/10.3.21.12 \n\n"
+                + "Run all the testers with multiple Trino versions:\n"
+                + "TrinoTestTool --auto=all --trino_version_list=435,478\n";
         System.out.println(example);
         return;
       }
@@ -243,29 +250,46 @@ public class TrinoQueryTestTool {
       TrinoQueryITBase.autoStart = autoStart;
       TrinoQueryITBase.autoStartGravitino = autoStartGravitino;
 
-      TrinoQueryIT testerRunner = new TrinoQueryIT();
-      testerRunner.setup();
+      String trinoVersionList = commandLine.getOptionValue("trino_version_list", "");
+      String[] trinoVersions =
+          trinoVersionList.isEmpty() ? new String[] {""} : trinoVersionList.split(",");
 
-      if (commandLine.hasOption("gen_output")) {
-        String catalogFileName = "catalog_" + catalog + "_prepare.sql";
-        testerRunner.runOneTestSetAndGenOutput(testSetDir, catalogFileName, testerId);
-        System.out.println("The output file is generated successfully in the path " + testSetDir);
-        return;
-      }
+      for (String trinoVersion : trinoVersions) {
+        if (!trinoVersion.isEmpty()) {
+          System.out.println("Testing Trino version: " + trinoVersion);
+          TrinoQueryIT.trinoVersion = trinoVersion.trim();
+        }
 
-      if (testSet == null) {
-        testerRunner.testSql();
-      } else {
-        testerRunner.testSql(testSetDir, catalog, testerId);
+        TrinoQueryIT testerRunner = new TrinoQueryIT();
+        try {
+          testerRunner.setup();
+
+          if (commandLine.hasOption("gen_output")) {
+            String catalogFileName = "catalog_" + catalog + "_prepare.sql";
+            testerRunner.runOneTestSetAndGenOutput(testSetDir, catalogFileName, testerId);
+            System.out.println(
+                "The output file is generated successfully in the path " + testSetDir);
+          } else {
+            if (testSet == null) {
+              testerRunner.testSql();
+            } else {
+              testerRunner.testSql(testSetDir, catalog, testerId);
+            }
+            System.out.printf(
+                "Trino version %s testers have finished. Total:%s, Pass: %s\n%s",
+                trinoVersion,
+                testerRunner.totalCount,
+                testerRunner.passCount,
+                testerRunner.generateTestStatus());
+          }
+        } finally {
+          TrinoQueryIT.cleanup();
+          TrinoQueryITBase.started = false;
+        }
       }
-      System.out.printf(
-          "All testers have finished. Total:%s, Pass: %s\n%s",
-          testerRunner.totalCount, testerRunner.passCount, testerRunner.generateTestStatus());
     } catch (Exception e) {
       System.out.println(e.getMessage());
       System.exit(-1);
-    } finally {
-      TrinoQueryIT.cleanup();
     }
   }
 

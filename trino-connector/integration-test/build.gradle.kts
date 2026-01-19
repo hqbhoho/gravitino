@@ -123,6 +123,11 @@ tasks.register<JavaExec>("TrinoTest") {
   classpath = sourceSets["test"].runtimeClasspath
   mainClass.set("org.apache.gravitino.trino.connector.integration.test.TrinoQueryTestTool")
 
+  // Set environment variables for the test tool
+  environment("GRAVITINO_ROOT_DIR", project.rootDir.absolutePath)
+  environment("GRAVITINO_HOME", project.rootDir.absolutePath)
+  environment("GRAVITINO_TEST", "true")
+
   if (JavaVersion.current() > JavaVersion.VERSION_1_8) {
     jvmArgs = listOf(
       "--add-opens",

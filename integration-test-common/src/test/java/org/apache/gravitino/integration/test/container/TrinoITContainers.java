@@ -49,7 +49,7 @@ public class TrinoITContainers implements AutoCloseable {
   }
 
   public void launch(int gravitinoServerPort) throws Exception {
-    launch(gravitinoServerPort, "hive2", false, 0);
+    launch(gravitinoServerPort, "hive2", false, 0, "");
   }
 
   public void launch(
@@ -58,6 +58,16 @@ public class TrinoITContainers implements AutoCloseable {
       boolean isTrinoConnectorTest,
       int trinoWorkerNum)
       throws Exception {
+    launch(gravitinoServerPort, hiveRuntimeVersion, isTrinoConnectorTest, trinoWorkerNum, "");
+  }
+
+  public void launch(
+      int gravitinoServerPort,
+      String hiveRuntimeVersion,
+      boolean isTrinoConnectorTest,
+      int trinoWorkerNum,
+      String trinoVersion)
+      throws Exception {
     shutdown();
 
     Map<String, String> env = new HashMap<>();
@@ -65,6 +75,17 @@ public class TrinoITContainers implements AutoCloseable {
     env.put("GRAVITINO_SERVER_PORT", String.valueOf(gravitinoServerPort));
     env.put("HIVE_RUNTIME_VERSION", hiveRuntimeVersion);
     env.put("TRINO_CONNECTOR_TEST", String.valueOf(isTrinoConnectorTest));
+    if (Strings.isNotEmpty(trinoVersion)) {
+      env.put("TRINO_VERSION", trinoVersion);
+      int version = Integer.parseInt(trinoVersion);
+      if (version >= 470 && version <= 478) {
+        env.put("TRINO_CONNECTOR_MODULE", "trino-connector-470-478");
+      } else if (version >= 440 && version <= 445) {
+        env.put("TRINO_CONNECTOR_MODULE", "trino-connector-440-445");
+      } else if (version >= 435 && version <= 439) {
+        env.put("TRINO_CONNECTOR_MODULE", "trino-connector-435-439");
+      }
+    }
     if (System.getProperty("gravitino.log.path") != null) {
       env.put("GRAVITINO_LOG_PATH", System.getProperty("gravitino.log.path"));
     }

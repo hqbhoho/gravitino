@@ -71,11 +71,17 @@ public class TrinoQueryITBase {
   private static BaseIT baseIT;
 
   protected int trinoWorkerNum = 0;
+  protected String trinoVersion = "";
 
   public TrinoQueryITBase() {}
 
   public TrinoQueryITBase(int trinoWorkerNum) {
     this.trinoWorkerNum = trinoWorkerNum;
+  }
+
+  public TrinoQueryITBase(int trinoWorkerNum, String trinoVersion) {
+    this.trinoWorkerNum = trinoWorkerNum;
+    this.trinoVersion = trinoVersion;
   }
 
   private void setEnv() throws Exception {
@@ -104,7 +110,8 @@ public class TrinoQueryITBase {
           baseIT.getGravitinoServerPort(),
           hiveRuntimeVersion,
           isTrinoConnectorTest,
-          trinoWorkerNum);
+          trinoWorkerNum,
+          trinoVersion);
 
       trinoUri = trinoITContainers.getTrinoUri();
       hiveMetastoreUri = trinoITContainers.getHiveMetastoreUri();
